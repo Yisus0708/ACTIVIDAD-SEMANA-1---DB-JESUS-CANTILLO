@@ -245,72 +245,72 @@ A continuación, se listan los requerimientos de extracción analítica resuelto
 
 1.  **Listar todos los clientes:**
     ```sql
-    SELECT * FROM cliente;
+    select * from cliente;
     ```
 2.  **Mostrar todos los productos con su categoría:**
     ```sql
-    SELECT p.nombre AS Producto, c.nombre AS Categoria 
-    FROM producto p
-    INNER JOIN categoria c ON p.id_categoria = c.id_categoria;
+    select p.nombre as producto, c.nombre as categoria 
+    from producto p
+    inner join categoria c on p.id_categoria = c.id_categoria;
     ```
 3.  **Consultar las facturas emitidas por ciudad (de la sucursal):**
     ```sql
-    SELECT s.ciudad, COUNT(f.id_factura) AS Total_Facturas
-    FROM factura f
-    INNER JOIN sucursal s ON f.id_sucursal = s.id_sucursal
-    GROUP BY s.ciudad;
+      select s.ciudad, count(f.id_factura) as total_facturas
+      from factura f
+      inner join sucursal s on f.id_sucursal = s.id_sucursal
+      group by s.ciudad;
     ```
 4.  **Obtener el total vendido por cliente:**
     ```sql
-    SELECT c.nombre AS Cliente, SUM(df.cantidad * p.precio_unitario) AS Total_Comprado
-    FROM detalle_factura df
-    INNER JOIN factura f ON df.id_factura = f.id_factura
-    INNER JOIN cliente c ON f.id_cliente = c.id_cliente
-    INNER JOIN producto p ON df.id_producto = p.id_producto
-    GROUP BY c.nombre;
+      select c.nombre as cliente, sum(df.cantidad * p.precio_unitario) as total_comprado
+      from detalle_factura df
+      inner join factura f on df.id_factura = f.id_factura
+      inner join cliente c on f.id_cliente = c.id_cliente
+      inner join producto p on df.id_producto = p.id_producto
+      group by c.nombre;
     ```
 5.  **Obtener el total vendido por categoría:**
     ```sql
-    SELECT cat.nombre AS Categoria, SUM(df.cantidad * p.precio_unitario) AS Total_Vendido
-    FROM detalle_factura df
-    INNER JOIN producto p ON df.id_producto = p.id_producto
-    INNER JOIN categoria cat ON p.id_categoria = cat.id_categoria
-    GROUP BY cat.nombre;
+      select cat.nombre as categoria, sum(df.cantidad * p.precio_unitario) as total_vendido
+      from detalle_factura df
+      inner join producto p on df.id_producto = p.id_producto
+      inner join categoria cat on p.id_categoria = cat.id_categoria
+      group by cat.nombre;
     ```
 6.  **Mostrar las facturas atendidas por cada asesor comercial:**
     ```sql
-    SELECT v.nombre AS Asesor, f.id_factura, f.fecha
-    FROM factura f
-    INNER JOIN vendedor v ON f.id_vendedor = v.id_vendedor;
+      select v.nombre as asesor, f.id_factura, f.fecha
+      from factura f
+      inner join vendedor v on f.id_vendedor = v.id_vendedor;
     ```
 7.  **Consultar los productos más vendidos:**
     ```sql
-    SELECT p.nombre AS Producto, SUM(df.cantidad) AS Unidades_Vendidas
-    FROM detalle_factura df
-    INNER JOIN producto p ON df.id_producto = p.id_producto
-    GROUP BY p.nombre
-    ORDER BY Unidades_Vendidas DESC;
+      select p.nombre as producto, sum(df.cantidad) as unidades_vendidas
+      from detalle_factura df
+      inner join producto p on df.id_producto = p.id_producto
+      group by p.nombre
+      order by unidades_vendidas desc;
     ```
 8.  **Mostrar las sucursales y la cantidad de facturas gestionadas:**
     ```sql
-    SELECT s.nombre AS Sucursal, COUNT(f.id_factura) AS Cantidad_Facturas
-    FROM factura f
-    INNER JOIN sucursal s ON f.id_sucursal = s.id_sucursal
-    GROUP BY s.nombre;
+      select s.nombre as sucursal, count(f.id_factura) as cantidad_facturas
+      from factura f
+      inner join sucursal s on f.id_sucursal = s.id_sucursal
+      group by s.nombre;
     ```
 9.  **Consultar ventas realizadas mediante un método de pago específico (Ej: 'Efectivo'):**
     ```sql
-    SELECT f.id_factura, f.fecha, mp.nombre AS Metodo_Pago
-    FROM factura f
-    INNER JOIN metodo_pago mp ON f.id_metodo = mp.id_metodo
-    WHERE mp.nombre = 'Efectivo';
+      select f.id_factura, f.fecha, mp.nombre as metodo_pago
+      from factura f
+      inner join metodo_pago mp on f.id_metodo = mp.id_metodo
+      where mp.nombre = 'efectivo';
     ```
 10. **Obtener el valor total de cada factura:**
     ```sql
-    SELECT id_factura, SUM(cantidad * precio_unitario) AS Valor_Total_Factura
-    FROM detalle_factura df
-    INNER JOIN producto p ON df.id_producto = p.id_producto
-    GROUP BY id_factura;
+      select id_factura, sum(cantidad * precio_unitario) as valor_total_factura
+      from detalle_factura df
+      inner join producto p on df.id_producto = p.id_producto
+      group by id_factura;
     ```
 
 ---
