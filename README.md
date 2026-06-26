@@ -29,14 +29,14 @@ La empresa **Riwi Supply** venía registrando la información de sus operaciones
 
 A partir del análisis, se abstrajeron las siguientes entidades del mundo real del negocio:
 
-1.  **cliente:** Empresa u organización que realiza la compra de productos a Riwi Supply.
-2.  **vendedor:** Asesor comercial que gestiona, atiende y hace el seguimiento de la venta.
-3.  **sucursal:** Sede física de Riwi Supply desde donde se realiza la operación logística y el despacho.
-4.  **categoria:** Clasificación o agrupación a la que pertenece un producto determinado.
-5.  **producto:** Artículo o material de construcción ofrecido por Riwi Supply para la venta.
-6.  **metodo_pago:** Forma o medio en que el cliente cancela la transacción financiera.
-7.  **factura:** Documento de cabecera que registra la transacción general, fecha y actores involucrados.
-8.  **detalle_factura:** Línea de transacción que rompe la relación de muchos a muchos, registrando cada producto individual y su cantidad dentro de una factura.
+1. **cliente:** Empresa u organización que realiza la compra de productos a Riwi Supply.
+2. **vendedor:** Asesor comercial que gestiona, atiende y hace el seguimiento de la venta.
+3. **sucursal:** Sede física de Riwi Supply desde donde se realiza la operación logística y el despacho.
+4. **categoria:** Clasificación o agrupación a la que pertenece un producto determinado.
+5. **producto:** Artículo o material de construcción ofrecido por Riwi Supply para la venta.
+6. **metodo_pago:** Forma o medio en que el cliente cancela la transacción financiera.
+7. **factura:** Documento de cabecera que registra la transacción general, fecha y actores involucrados.
+8. **detalle_factura:** Línea de transacción que rompe la relación de muchos a muchos, registrando cada producto individual y su cantidad dentro de una factura.
 
 ---
 
@@ -77,7 +77,7 @@ A continuación, se detalla la estructura lógica inicial de las tablas, definie
 
 ### 🗺️ Fase 4 y 5: Identificación de Relaciones y Refinamiento
 
-#### Preguntas de Control y Validación:
+#### Preguntas de Control y Validation:
 * **¿Existen atributos duplicados?** No, cada atributo atómico ha sido asignado de manera estricta a una sola tabla según su naturaleza.
 * **¿Existen dependencias parciales?** No. En `detalle_factura`, la métrica `cantidad` requiere de manera obligatoria la combinación lógica del producto y la factura para tener sentido comercial.
 * **¿Existen dependencias transitivas?** Sí, originalmente existían en el set de datos (ej. la ciudad del cliente dependía del nombre del cliente y no de la factura). Estas dependencias fueron totalmente eliminadas al segmentar el diseño en tablas maestras e independientes.
@@ -92,19 +92,151 @@ A continuación, se detalla la estructura lógica inicial de las tablas, definie
 
 El diseño se sometió a las tres reglas de normalización de bases de datos relacionales:
 
-1.  **Primera Forma Normal (1FN) - Atomicidad:** El Excel original carecía de llaves primarias explícitas y repetía la estructura de facturas (como `FAC-2001`) ocupando múltiples renglones para diferentes productos. Se eliminaron los grupos repetitivos extrayendo las líneas de compra hacia la nueva entidad agregada `detalle_factura`, y estableciendo identificadores únicos unívocos.
-2.  **Segunda Forma Normal (2FN) - Dependencias Parciales:** Al aislar las llaves complejas, se identificó que atributos como la fecha de orden y los datos del cliente dependían únicamente del número global de factura, mientras que el precio unitario dependía directo del artículo. Se procedió a romper la estructura en las tablas independientes `factura` y `producto`.
-3.  **Tercera Forma Normal (3FN) - Dependencias Transitivas:** Se detectó que datos secundarios como la ciudad de la constructora dependían del cliente, la categoría dependía del producto y la sucursal/método de pago se reiteraban textualmente de forma horizontal. Se normalizó creando de raíz las tablas maestras: `cliente`, `sucursal`, `categoria` y `metodo_pago`.
+1. **Primera Forma Normal (1FN) - Atomicidad:** El Excel original carecía de llaves primarias explícitas y repetía la estructura de facturas (como `FAC-2001`) ocupando múltiples renglones para diferentes productos. Se eliminaron los grupos repetitivos extrayendo las líneas de compra hacia la nueva entidad agregada `detalle_factura`, y estableciendo identificadores únicos unívocos.
+2. **Segunda Forma Normal (2FN) - Dependencias Parciales:** Al aislar las llaves complejas, se identificó que atributos como la fecha de orden y los datos del cliente dependían únicamente del número global de factura, mientras que el precio unitario dependía directo del artículo. Se procedió a romper la estructura en las tablas independientes `factura` y `producto`.
+3. **Tercera Forma Normal (3FN) - Dependencias Transitivas:** Se detectó que datos secundarios como la ciudad de la constructora dependían del cliente, la categoría dependía del producto y la sucursal/método de pago se reiteraban textualmente de forma horizontal. Se normalizó creando de raíz las tablas maestras: `cliente`, `sucursal`, `categoria` y `metodo_pago`.
 
 ---
 
 ### 💻 Fase 7 y 8: Modelo Relacional Final e Implementación
 
-Aquí se muestra la representación lógica final de la base de datos lista para producción:
+Aquí se muestra la representación lógica final de la base de datos lista para producción junto con su respectivo Script DDL y DML:
+
 <img width="1896" height="1357" alt="Untitled" src="https://github.com/user-attachments/assets/d40c13a1-1524-4219-aabd-89918a198848" />
 
-*(Nota: En esta sección puedes anexar opcionalmente tus bloques de código SQL reales para la creación de tablas e inserción de datos como se solicita).*
+```sql
+-- crear tablas
 
+create table categoria (
+    id_categoria serial primary key,
+    nombre varchar(50) not null
+);
+
+create table cliente (
+    id_cliente serial primary key,
+    nombre varchar(100) not null,
+    ciudad varchar(50) not null
+);
+
+create table vendedor (
+    id_vendedor serial primary key,
+    nombre varchar(100) not null
+);
+
+create table sucursal (
+    id_sucursal serial primary key,
+    nombre varchar(50) not null,
+    ciudad varchar(50) not null
+);
+
+create table metodo_pago (
+    id_metodo serial primary key,
+    nombre varchar(30) not null
+);
+
+create table producto (
+    id_producto serial primary key,
+    nombre varchar(100) not null,
+    precio_unitario decimal not null,
+    id_categoria integer not null,
+    foreign key (id_categoria) references categoria(id_categoria)
+);
+
+create table factura (
+    id_factura varchar(10) primary key,
+    fecha date not null,
+    id_metodo integer not null,
+    id_cliente integer not null,
+    id_vendedor integer not null,
+    id_sucursal integer not null,
+    foreign key (id_metodo) references metodo_pago(id_metodo),
+    foreign key (id_cliente) references cliente(id_cliente),
+    foreign key (id_vendedor) references vendedor(id_vendedor),
+    foreign key (id_sucursal) references sucursal(id_sucursal)
+);
+
+create table detalle_factura (
+    id_detalle serial primary key,
+    cantidad integer not null,
+    id_factura varchar(10) not null,
+    id_producto integer not null,
+    foreign key (id_factura) references factura(id_factura),
+    foreign key (id_producto) references producto(id_producto)
+);
+
+-- insertar datos
+
+insert into categoria (nombre) values
+('construcción'),
+('herramientas'),
+('pinturas'),
+('agregados');
+
+insert into cliente (nombre, ciudad) values
+('constructora andina sas', 'bogotá'),
+('ferretería el tornillo', 'medellín'),
+('inversiones caribe sas', 'barranquilla'),
+('metalúrgica del norte', 'cali'),
+('obras y vías sas', 'bucaramanga'),
+('constructora pacífico', 'cali'),
+('ferretería central', 'cartagena');
+
+insert into vendedor (nombre) values
+('carlos pérez'),
+('laura gómez'),
+('andrés ruiz'),
+('diana torres'),
+('miguel castro');
+
+insert into sucursal (nombre, ciudad) values
+('centro', 'bogotá'),
+('norte', 'medellín'),
+('costa', 'barranquilla'),
+('occidente', 'cali'),
+('oriente', 'bucaramanga');
+
+insert into metodo_pago (nombre) values
+('transferencia'),
+('tarjeta'),
+('crédito'),
+('efectivo');
+
+insert into producto (nombre, precio_unitario, id_categoria) values
+('cemento gris 50kg', 32000, 1),
+('varilla 3/8', 28000, 1),
+('taladro industrial', 450000, 2),
+('pintura blanca 5gl', 95000, 3),
+('rodillo profesional', 18000, 3),
+('disco de corte', 12000, 2),
+('broca sds', 15000, 2),
+('arena lavada', 25000, 4),
+('grava triturada', 27000, 4);
+
+insert into factura (id_factura, fecha, id_metodo, id_cliente, id_vendedor, id_sucursal) values
+('fac-2001', '2026-05-01', 1, 1, 1, 1),
+('fac-2002', '2026-05-02', 2, 2, 2, 2),
+('fac-2003', '2026-05-03', 3, 3, 3, 3),
+('fac-2004', '2026-05-04', 4, 4, 4, 4),
+('fac-2005', '2026-05-05', 1, 1, 1, 1),
+('fac-2006', '2026-05-06', 2, 2, 2, 2),
+('fac-2007', '2026-05-07', 3, 5, 5, 5),
+('fac-2008', '2026-05-08', 1, 6, 4, 4),
+('fac-2009', '2026-05-09', 2, 7, 3, 3);
+
+insert into detalle_factura (cantidad, id_factura, id_producto) values
+(100, 'fac-2001', 1),
+(50, 'fac-2001', 2),
+(3, 'fac-2002', 3),
+(20, 'fac-2003', 4),
+(10, 'fac-2003', 5),
+(40, 'fac-2004', 6),
+(120, 'fac-2005', 1),
+(25, 'fac-2006', 7),
+(60, 'fac-2007', 8),
+(80, 'fac-2007', 9),
+(15, 'fac-2008', 4),
+(2, 'fac-2009', 3);
+```
 ---
 
 ### 🔍 Fase 9: Consultas SQL de Reportes Solicitadas
